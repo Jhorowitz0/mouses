@@ -20,6 +20,8 @@ function setup() {
     //paint it white
     background(255, 255, 255);
 
+    noCursor();
+
     //I create socket but I wait to assign all the functions before opening a connection
     socket = io({
         autoConnect: false
@@ -54,13 +56,12 @@ function updateState(state) {
     //iterate through the players
     for (var playerId in state.players) {
         if (state.players.hasOwnProperty(playerId)) {
-
+            var playerState = state.players[playerId];
+            image(pointer, playerState.x, playerState.y);
             //in this case I don't have to draw the pointer at my own position
-            if (playerId != socket.id) {
-                var playerState = state.players[playerId];
-
-                //draw a pointer image for each player except for myself
-                image(pointer, playerState.x, playerState.y);
+            if (playerId == socket.id) {
+                fill('red');
+                ellipse(playerState.x,playerState.y,5,5);
             }
         }
     }
