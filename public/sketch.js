@@ -5,6 +5,9 @@
 //create a socket connection
 var socket;
 var pointer;
+var pointerYou;
+var pointerAttack;
+var pointerDead;
 //I send updates at the same rate as the server update
 var UPDATE_TIME = 1000 / 10;
 
@@ -12,6 +15,9 @@ var UPDATE_TIME = 1000 / 10;
 function preload() {
     //load the image and store it in pointer
     pointer = loadImage('assets/pointer.png');
+    pointerYou = loadImage('assets/pointer_you.png');
+    pointerAttack = loadImage('assets/pointer_attack.png');
+    pointerDead = loadImage('assets/pointer_dead.png');
 }
 
 function setup() {
@@ -38,7 +44,7 @@ function setup() {
 
     //every x time I update the server on my position
     setInterval(function () {
-        socket.emit('clientUpdate', { x: mouseX, y: mouseY });
+        socket.emit('clientUpdate', { x: mouseX, y: mouseY});
     }, UPDATE_TIME);
 }
 
@@ -47,21 +53,37 @@ function setup() {
 function draw() {
 }
 
+function mousePressed(){
+    socket.emit('attack', { x: mouseX, y: mouseY});
+}
+
+function mouseReleased(){
+    socket.emit('return');
+}
+
 //called by the server every 30 fps
 function updateState(state) {
 
-    //draw a white background
-    background(255, 255, 255);
+    //draw a black background
+    background(0,0,0);
 
     //iterate through the players
     for (var playerId in state.players) {
         if (state.players.hasOwnProperty(playerId)) {
             var playerState = state.players[playerId];
-            image(pointer, playerState.x, playerState.y);
-            //in this case I don't have to draw the pointer at my own position
-            if (playerId == socket.id) {
-                fill('red');
-                ellipse(playerState.x,playerState.y,5,5);
+
+            //image(pointer, playerState.x, playerState.y);
+            if(playerState.isDead){
+                image(pointerDead, playerState.x, playerState.y);
+            }else if(playerState.isAttacking){
+                noStroke();
+                fill(255,0,0,100);
+                ellipse(playerState.x,playerState.y,20,20);
+                image(pointerAttack, playerState.x, playerState.y);
+            }else if(playerId == socket.id) {
+                image(pointerYou, playerState.x, playerState.y);
+            }else{
+                image(pointer, playerState.x, playerState.y);
             }
         }
     }
